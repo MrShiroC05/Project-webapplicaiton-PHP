@@ -17,7 +17,7 @@ function decodeRegionId($value) {
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.css">
     <link rel="stylesheet" href="../assets/css/base.css">
     <link rel="stylesheet" href="../assets/css/navigation.css">
-    <link rel="stylesheet" href="../assets/css/region-form.css">
+    <link rel="stylesheet" href="../assets/css/form.css">
     <script src="../assets/js/navigation.js"></script>
     <script src="../assets/js/toast.js"></script>
 </head>
@@ -49,7 +49,7 @@ function decodeRegionId($value) {
         ?>
 
         <section class="panel">
-            <form id="regionUpdateForm" class="region-form" action="./EXC.php" method="post" enctype="multipart/form-data">
+            <form id="regionUpdateForm" class="form" action="./EXC.php" method="post" enctype="multipart/form-data">
                 <input type="hidden" name="action" value="update">
                 <input type="hidden" name="region_id" value="<?php echo $row['region_id']; ?>">
                 <input type="hidden" id="regionImageData" name="regionImageData">

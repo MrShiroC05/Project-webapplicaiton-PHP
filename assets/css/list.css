@@ -1,0 +1,116 @@
+.card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 18px;
+}
+
+.card {
+    background: rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(148, 163, 184, 0.18);
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 12px 28px rgba(15, 118, 110, 0.06);
+}
+
+.card-image {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.12), rgba(20, 184, 166, 0.12));
+}
+
+.empty-card-image {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--slate-700);
+    font-size: 0.95rem;
+    font-style: italic;
+}
+
+.card-body {
+    padding: 16px 16px 18px;
+}
+
+.code {
+    display: inline-block;
+    padding: 5px 8px;
+    border-radius: 999px;
+    background: rgba(14, 116, 144, 0.12);
+    color: var(--blue-900);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+}
+
+.card-body h3 {
+    margin: 0 0 8px;
+    color: var(--blue-900);
+    font-size: 1.2rem;
+}
+
+.card-body p {
+    margin: 0;
+    color: var(--slate-700);
+    line-height: 1.6;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 14px;
+    background: var(--white);
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid rgba(148, 163, 184, 0.22);
+}
+
+.table th,
+.table td {
+    padding: 14px 12px;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.18);
+    text-align: left;
+    vertical-align: top;
+}
+
+.table th {
+    background: linear-gradient(135deg, rgba(14, 116, 144, 0.12), rgba(20, 184, 166, 0.12));
+    color: var(--blue-900);
+    font-size: 0.82rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.table tbody tr:hover {
+    background: rgba(224, 242, 254, 0.36);
+}
+
+.image {
+    width: 84px;
+    height: 84px;
+    object-fit: cover;
+    border-radius: 12px;
+    border: 1px solid rgba(14, 116, 144, 0.2);
+    background: #f8fafc;
+}
+
+.no-image {
+    display: inline-block;
+    padding: 8px 10px;
+    border-radius: 10px;
+    background: rgba(148, 163, 184, 0.08);
+    color: var(--slate-700);
+    font-style: italic;
+}
+
+.action-group {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.action-group a {
+    min-width: 72px;
+}

@@ -21,7 +21,7 @@ function decodeRegionId($value) {
     <title>Region List</title>
     <link rel="stylesheet" href="../assets/css/base.css">
     <link rel="stylesheet" href="../assets/css/navigation.css">
-    <link rel="stylesheet" href="../assets/css/region-list.css">
+    <link rel="stylesheet" href="../assets/css/list.css">
     <script src="../assets/js/navigation.js"></script>
     <script src="../assets/js/toast.js"></script>
 </head>
@@ -44,7 +44,7 @@ function decodeRegionId($value) {
         // ถ้ามีข้อมูล region มากกว่า 0 ให้แสดงตาราง และรูปภาพ พร้อมรายละเอียด
         if ($result && $result->num_rows > 0) {
             echo "<section class='panel'>
-                    <table class='region-table'>
+                    <table class='table'>
                         <tr>
                             <th>Region Name</th>
                             <th>Region Description</th>
@@ -63,9 +63,9 @@ function decodeRegionId($value) {
                         <td>";
 
                 if (!empty($imagePath)) {
-                    echo "<img class='region-image' src='../{$imagePath}' alt='{$row['region_name']}'>";
+                    echo "<img class='image' src='../{$imagePath}' alt='{$row['region_name']}'>";
                 } else {
-                    echo "<span class='region-no-image'>No image</span>";
+                    echo "<span class='no-image'>No image</span>";
                 }
 
                 echo "</td>

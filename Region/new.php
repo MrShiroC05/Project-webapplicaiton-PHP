@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.css">
     <link rel="stylesheet" href="../assets/css/base.css">
     <link rel="stylesheet" href="../assets/css/navigation.css">
-    <link rel="stylesheet" href="../assets/css/region-form.css">
+    <link rel="stylesheet" href="../assets/css/form.css">
     <script src="../assets/js/navigation.js"></script>
     <script src="../assets/js/toast.js"></script>
 </head>
@@ -24,7 +24,7 @@
         </header>
 
         <section class="panel">
-            <form id="regionForm" class="region-form" method="post" action="./EXC.php" enctype="multipart/form-data">
+            <form id="regionForm" class="form" method="post" action="./EXC.php" enctype="multipart/form-data">
                 <input type="hidden" name="action" value="add">
                 <input type="hidden" id="regionImageData" name="regionImageData">
 

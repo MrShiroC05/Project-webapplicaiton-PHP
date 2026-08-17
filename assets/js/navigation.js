@@ -15,6 +15,16 @@ function initializeNavigation() {
             label: 'List Region',
             href: baseUrl + '/Region/listRegion.php',
             id: 'nav-list-region'
+        },
+        {
+            label: 'Champion',
+            href: baseUrl + '/Champion/listChampion.php',
+            id: 'nav-list-champion'
+        },
+        {
+            label: 'Race',
+            href: baseUrl + '/Race/listRace.php',
+            id: 'nav-list-race'
         }
     ];
 
@@ -41,17 +51,27 @@ function initializeNavigation() {
     const isHomePage = currentPath === '/'
         || currentPath.endsWith('/webbapplications/index.php');
     const isListRegionPage = currentPath.includes('/region/');
+    const isListChampionPage = currentPath.includes('/champion/');
+    const isListRacePage = currentPath.includes('/race/');
 
     const homeLink = document.getElementById('nav-home');
     const listRegionLink = document.getElementById('nav-list-region');
+    const listChampionLink = document.getElementById('nav-list-champion');
+    const listRaceLink = document.getElementById('nav-list-race');
 
     if (homeLink) homeLink.classList.remove('active');
     if (listRegionLink) listRegionLink.classList.remove('active');
+    if (listChampionLink) listChampionLink.classList.remove('active');
+    if (listRaceLink) listRaceLink.classList.remove('active');
 
     if (isHomePage && homeLink) {
         homeLink.classList.add('active');
     } else if (isListRegionPage && listRegionLink) {
         listRegionLink.classList.add('active');
+    } else if (isListChampionPage && listChampionLink) {
+        listChampionLink.classList.add('active');
+    } else if (isListRacePage && listRaceLink) {
+        listRaceLink.classList.add('active');
     }
 }
 
