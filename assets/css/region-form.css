@@ -1,0 +1,42 @@
+.region-form {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.crop-preview-wrapper {
+    display: none;
+    margin-top: 12px;
+    padding: 12px;
+    background: rgba(224, 242, 254, 0.55);
+    border: 1px solid rgba(59, 130, 246, 0.18);
+    border-radius: 16px;
+}
+
+.crop-stage {
+    max-width: 420px;
+    max-height: 420px;
+    border: 1px solid rgba(148, 163, 184, 0.3);
+    background: var(--slate-50);
+    overflow: hidden;
+    border-radius: 12px;
+}
+
+.crop-stage img {
+    display: block;
+    max-width: 100%;
+}
+
+.apply-crop-btn {
+    margin-top: 12px;
+}
+
+.region-form .primary-btn {
+    margin-top: 8px;
+}
+
+@media (max-width: 640px) {
+    .crop-stage {
+        max-width: 100%;
+    }
+}
