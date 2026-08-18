@@ -24,9 +24,9 @@
         </header>
 
         <section class="panel">
-            <form id="regionForm" class="form" method="post" action="./EXC.php" enctype="multipart/form-data">
+            <form id="regionForm" class="form" data-crop-form data-crop-type="region" method="post" action="./EXC.php" enctype="multipart/form-data">
                 <input type="hidden" name="action" value="add">
-                <input type="hidden" id="regionImageData" name="regionImageData">
+                <input type="hidden" id="regionImageData" name="regionImageData" data-crop-data>
 
                 <div class="form-row">
                     <label for="regionName">Region Name</label>
@@ -43,11 +43,11 @@
                     <input type="file" id="regionLogo" name="regionLogo" accept="image/*" required>
                 </div>
 
-                <div id="cropPreviewWrapper" class="crop-preview-wrapper">
+                <div id="cropPreviewWrapper" class="crop-preview-wrapper" data-crop-preview>
                     <div id="cropStage" class="crop-stage">
-                        <img id="cropImage" src="" alt="Crop preview">
+                        <img id="cropImage" data-crop-image src="" alt="Crop preview">
                     </div>
-                    <button type="button" id="applyCropBtn" class="secondary-btn apply-crop-btn">Use this crop</button>
+                    <button type="button" id="applyCropBtn" data-crop-apply class="secondary-btn apply-crop-btn">Use this crop</button>
                 </div>
 
                 <div class="action-group">
@@ -59,6 +59,6 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.js"></script>
-    <script src="../assets/js/region-crop.js"></script>
+    <script src="../assets/js/crop.js"></script>
 </body>
 </html>

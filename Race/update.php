@@ -1,15 +1,14 @@
 <?php
 include '../Connection/connect.php';
+include '../method/database.php';
 
 $raceId = $_GET['race_id'] ?? '';
 if ($raceId === '') {
     die('Race ID is required.');
 }
 
-$stmt = $conn->prepare("SELECT * FROM race WHERE race_id = ?");
-$stmt->bind_param('s', $raceId);
-$stmt->execute();
-$race = $stmt->get_result()->fetch_assoc();
+$raceRepo = new RaceRepository($conn);
+$race = $raceRepo->getById($raceId);
 if (!$race) {
     die('Race not found.');
 }
@@ -20,6 +19,7 @@ if (!$race) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Update Race</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.css">
     <link rel="stylesheet" href="../assets/css/base.css">
     <link rel="stylesheet" href="../assets/css/navigation.css">
     <script src="../assets/js/navigation.js"></script>
@@ -33,9 +33,10 @@ if (!$race) {
         </header>
 
         <section class="panel">
-            <form action="./EXC.php" method="post" enctype="multipart/form-data">
+            <form id="raceUpdateForm" data-crop-form data-crop-type="race" action="./EXC.php" method="post" enctype="multipart/form-data">
                 <input type="hidden" name="action" value="update">
                 <input type="hidden" name="race_id" value="<?php echo htmlspecialchars($race['race_id']); ?>">
+                <input type="hidden" name="raceImageData" data-crop-data>
 
                 <div class="form-row">
                     <label>Race Name</label>
@@ -57,6 +58,13 @@ if (!$race) {
                     <?php endif; ?>
                 </div>
 
+                <div id="cropPreviewWrapper" data-crop-preview class="crop-preview-wrapper" style="display:none;">
+                    <div id="cropStage" class="crop-stage">
+                        <img id="cropImage" data-crop-image src="<?php echo !empty($race['race_image']) ? '../' . htmlspecialchars($race['race_image']) : ''; ?>" alt="Crop preview">
+                    </div>
+                    <button type="button" id="applyCropBtn" data-crop-apply class="secondary-btn apply-crop-btn">Use this crop</button>
+                </div>
+
                 <div class="action-group">
                     <button type="submit" class="primary-btn">Update Race</button>
                     <a href="./listRace.php" class="secondary-btn">Back</a>
@@ -64,5 +72,7 @@ if (!$race) {
             </form>
         </section>
     </div>
+    <script src="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.js"></script>
+    <script src="../assets/js/crop.js"></script>
 </body>
 </html>

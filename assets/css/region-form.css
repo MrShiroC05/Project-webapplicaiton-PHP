@@ -6,29 +6,40 @@
 
 .crop-preview-wrapper {
     display: none;
-    margin-top: 12px;
-    padding: 12px;
-    background: rgba(224, 242, 254, 0.55);
+    margin-top: 18px;
+    padding: 18px;
+    background: linear-gradient(180deg, rgba(224, 242, 254, 0.72), rgba(240, 253, 250, 0.82));
     border: 1px solid rgba(59, 130, 246, 0.18);
-    border-radius: 16px;
+    border-radius: 18px;
+    box-shadow: 0 12px 24px rgba(59, 130, 246, 0.08);
 }
 
 .crop-stage {
-    max-width: 420px;
-    max-height: 420px;
-    border: 1px solid rgba(148, 163, 184, 0.3);
-    background: var(--slate-50);
+    max-width: 480px;
+    max-height: 480px;
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    background: linear-gradient(135deg, #f8fafc, #e2e8f0);
     overflow: hidden;
-    border-radius: 12px;
+    border-radius: 14px;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.7);
 }
 
 .crop-stage img {
     display: block;
-    max-width: 100%;
+    width: 100%;
+    height: auto;
+    max-height: 480px;
+    object-fit: contain;
+    background: rgba(255, 255, 255, 0.5);
 }
 
 .apply-crop-btn {
-    margin-top: 12px;
+    margin-top: 14px;
+    width: auto;
+    min-width: 170px;
+    background: linear-gradient(135deg, var(--blue-700), var(--green-500));
+    color: var(--white);
+    box-shadow: 0 12px 20px rgba(59, 130, 246, 0.18);
 }
 
 .region-form .primary-btn {

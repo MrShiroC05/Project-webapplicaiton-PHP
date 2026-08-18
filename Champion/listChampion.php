@@ -1,16 +1,9 @@
 <?php
 include '../Connection/connect.php';
+include '../method/database.php';
 
-$sql = "
-    SELECT c.*, GROUP_CONCAT(r.race_name ORDER BY r.race_name SEPARATOR ', ') AS race_names
-    FROM champion c
-    LEFT JOIN champion_race cr ON cr.champion_id = c.champion_id
-    LEFT JOIN race r ON r.race_id = cr.race_id
-    GROUP BY c.champion_id
-    ORDER BY c.champion_id ASC
-";
-
-$result = $conn->query($sql);
+$championRepo = new ChampionRepository($conn);
+$result = $championRepo->getAllWithRaceNames();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -34,7 +27,7 @@ $result = $conn->query($sql);
             <a href="./new.php" class="primary-btn small-btn">Add Champion</a>
         </header>
 
-        <?php if ($result && $result->num_rows > 0): ?>
+        <?php if (!empty($result)): ?>
             <section class="panel">
                 <table class="region-table">
                     <thead>
@@ -48,7 +41,7 @@ $result = $conn->query($sql);
                         </tr>
                     </thead>
                     <tbody>
-                        <?php while ($row = $result->fetch_assoc()): ?>
+                        <?php foreach ($result as $row): ?>
                             <tr>
                                 <td><?php echo htmlspecialchars($row['champion_name']); ?></td>
                                 <td><?php echo htmlspecialchars($row['champion_title']); ?></td>
@@ -68,7 +61,7 @@ $result = $conn->query($sql);
                                     </div>
                                 </td>
                             </tr>
-                        <?php endwhile; ?>
+                        <?php endforeach; ?>
                     </tbody>
                 </table>
             </section>

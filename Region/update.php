@@ -1,6 +1,7 @@
 <?php
 // File role: update existing region information.
 include '../Connection/connect.php';
+include '../method/database.php';
 
 function decodeRegionId($value) {
     $padding = str_repeat('=', (4 - strlen($value) % 4) % 4);
@@ -39,9 +40,8 @@ function decodeRegionId($value) {
                 die('Invalid region ID.');
             }
 
-            $sql = "SELECT * FROM region WHERE region_id = '".$id."' ";
-            $result = $conn->query($sql);
-            $row = $result->fetch_assoc();
+            $regionRepo = new RegionRepository($conn);
+            $row = $regionRepo->getById($id);
 
             if (!$row) {
                 die('Region not found.');
@@ -49,10 +49,10 @@ function decodeRegionId($value) {
         ?>
 
         <section class="panel">
-            <form id="regionUpdateForm" class="form" action="./EXC.php" method="post" enctype="multipart/form-data">
+            <form id="regionUpdateForm" class="form" data-crop-form data-crop-type="region" action="./EXC.php" method="post" enctype="multipart/form-data">
                 <input type="hidden" name="action" value="update">
                 <input type="hidden" name="region_id" value="<?php echo $row['region_id']; ?>">
-                <input type="hidden" id="regionImageData" name="regionImageData">
+                <input type="hidden" id="regionImageData" name="regionImageData" data-crop-data>
 
                 <div class="form-row">
                     <label for="regionName">Region Name</label>
@@ -66,14 +66,14 @@ function decodeRegionId($value) {
 
                 <div class="form-row">
                     <label for="regionLogo">Region Logo</label>
-                    <input type="file" id="regionLogo" name="regionLogo" accept="image/*">
+                    <input type="file" id="regionLogo" name="regionLogo" accept="image/*" >
                 </div>
 
-                <div id="cropPreviewWrapper" class="crop-preview-wrapper">
+                <div id="cropPreviewWrapper" class="crop-preview-wrapper" data-crop-preview>
                     <div id="cropStage" class="crop-stage">
-                        <img id="cropImage" src="" alt="Crop preview">
+                        <img id="cropImage" data-crop-image src="../<?php echo $row['region_image']; ?>" alt="Crop preview">
                     </div>
-                    <button type="button" id="applyCropBtn" class="secondary-btn apply-crop-btn">Use this crop</button>
+                    <button type="button" id="applyCropBtn" data-crop-apply class="secondary-btn apply-crop-btn">Use this crop</button>
                 </div>
 
                 <button type="submit" class="primary-btn">Update Region</button>
@@ -82,6 +82,6 @@ function decodeRegionId($value) {
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.js"></script>
-    <script src="../assets/js/region-crop.js"></script>
+    <script src="../assets/js/crop.js"></script>
 </body>
 </html>

@@ -1,6 +1,6 @@
 <?php
-// File role: display all regions and allow management actions.
 include '../Connection/connect.php';
+include '../method/database.php';
 
 function encodeRegionId($value) {
     return rtrim(strtr(base64_encode((string)$value), '+/', '-_'), '=');
@@ -11,6 +11,9 @@ function decodeRegionId($value) {
     $decoded = base64_decode(strtr($value, '-_', '+/') . $padding, true);
     return $decoded !== false ? $decoded : null;
 }
+
+$regionRepo = new RegionRepository($conn);
+$regions = $regionRepo->getAll();
 ?>
 
 <!DOCTYPE html>
@@ -37,12 +40,7 @@ function decodeRegionId($value) {
         </header>
 
         <?php
-        // ดึงข้อมูล region ทั้งหมดจากฐานข้อมูล เรียงตาม region_id เพื่อให้แสดงตามลำดับที่เหมาะสม
-        $sql = "SELECT * FROM region ORDER BY region_id ASC";
-        $result = $conn->query($sql);
-
-        // ถ้ามีข้อมูล region มากกว่า 0 ให้แสดงตาราง และรูปภาพ พร้อมรายละเอียด
-        if ($result && $result->num_rows > 0) {
+        if (!empty($regions)) {
             echo "<section class='panel'>
                     <table class='table'>
                         <tr>
@@ -52,8 +50,7 @@ function decodeRegionId($value) {
                             <th>Actions</th>
                         </tr>";
 
-            while ($row = $result->fetch_assoc()) {
-                // ตั้งค่า path รูปภาพ ถ้าไม่มีให้แสดงข้อความว่าไม่มีรูป
+            foreach ($regions as $row) {
                 $imagePath = !empty($row['region_image']) ? $row['region_image'] : '';
                 $encodedId = encodeRegionId($row['region_id']);
 
@@ -81,12 +78,8 @@ function decodeRegionId($value) {
             echo "</table>
                 </section>";
         } else {
-            // ถ้าไม่มี region ใด ๆ ให้แจ้งชัดเจนว่าไม่มีข้อมูล
             echo "<div class='empty-state'>No region data found.</div>";
         }
-
-        // ปิดการเชื่อมต่อฐานข้อมูล
-        $conn->close();
         ?>
     </div>
     <script src="../assets/js/region-actions.js"></script>

@@ -1,8 +1,12 @@
 <?php
 include '../Connection/connect.php';
+include '../method/database.php';
 
-$racesResult = $conn->query("SELECT * FROM race ORDER BY race_name ASC");
-$races = $racesResult ? $racesResult->fetch_all(MYSQLI_ASSOC) : [];
+$raceRepo = new RaceRepository($conn);
+$regionRepo = new RegionRepository($conn);
+
+$races = $raceRepo->getAll();
+$regions = $regionRepo->getAll();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -10,6 +14,7 @@ $races = $racesResult ? $racesResult->fetch_all(MYSQLI_ASSOC) : [];
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>New Champion</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.css">
     <link rel="stylesheet" href="../assets/css/base.css">
     <link rel="stylesheet" href="../assets/css/navigation.css">
     <script src="../assets/js/navigation.js"></script>
@@ -23,8 +28,9 @@ $races = $racesResult ? $racesResult->fetch_all(MYSQLI_ASSOC) : [];
         </header>
 
         <section class="panel">
-            <form action="./EXC.php" method="post" enctype="multipart/form-data">
+            <form id="championForm" data-crop-form data-crop-type="champion" action="./EXC.php" method="post" enctype="multipart/form-data">
                 <input type="hidden" name="action" value="add">
+                <input type="hidden" name="championImageData" data-crop-data>
 
                 <div class="form-row">
                     <label>Champion Name</label>
@@ -49,8 +55,7 @@ $races = $racesResult ? $racesResult->fetch_all(MYSQLI_ASSOC) : [];
                     <select name="champion_region" required>
                         <option value="">Select a region</option>
                         <?php
-                        $regionResult = $conn->query("SELECT * FROM region ORDER BY region_name ASC");
-                        while ($region = $regionResult->fetch_assoc()) {
+                        foreach ($regions as $region) {
                             echo '<option value="' . htmlspecialchars($region['region_id']) . '">' . htmlspecialchars($region['region_name']) . '</option>';
                         }
                         ?>
@@ -65,6 +70,13 @@ $races = $racesResult ? $racesResult->fetch_all(MYSQLI_ASSOC) : [];
                 <div class="form-row">
                     <label>Champion Image</label>
                     <input type="file" name="champion_image" accept="image/*">
+                </div>
+
+                <div id="cropPreviewWrapper" data-crop-preview class="crop-preview-wrapper" style="display:none;">
+                    <div id="cropStage" class="crop-stage">
+                        <img id="cropImage" data-crop-image src="" alt="Crop preview">
+                    </div>
+                    <button type="button" id="applyCropBtn" data-crop-apply class="secondary-btn apply-crop-btn">Use this crop</button>
                 </div>
 
                 <div class="form-row">
@@ -87,6 +99,8 @@ $races = $racesResult ? $racesResult->fetch_all(MYSQLI_ASSOC) : [];
         </section>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.js"></script>
+    <script src="../assets/js/crop.js"></script>
     <script>
         const limit = 2;
         const checkboxes = document.querySelectorAll('input[name="races[]"]');

@@ -1,29 +1,23 @@
 <?php
 include '../Connection/connect.php';
+include '../method/database.php';
 
 $championId = $_GET['champion_id'] ?? '';
 if ($championId === '') {
     die('Champion ID is required.');
 }
 
-$championResult = $conn->prepare("SELECT * FROM champion WHERE champion_id = ?");
-$championResult->bind_param('s', $championId);
-$championResult->execute();
-$champion = $championResult->get_result()->fetch_assoc();
+$championRepo = new ChampionRepository($conn);
+$raceRepo = new RaceRepository($conn);
+$championRaceRepo = new ChampionRaceRepository($conn);
+
+$champion = $championRepo->getById($championId);
 if (!$champion) {
     die('Champion not found.');
 }
 
-$raceResult = $conn->query("SELECT * FROM race ORDER BY race_name ASC");
-$races = $raceResult ? $raceResult->fetch_all(MYSQLI_ASSOC) : [];
-
-$selectedRaceStmt = $conn->prepare("SELECT race_id FROM champion_race WHERE champion_id = ?");
-$selectedRaceStmt->bind_param('s', $championId);
-$selectedRaceStmt->execute();
-$selectedRaceSet = $selectedRaceStmt->get_result()->fetch_all(MYSQLI_ASSOC);
-$selectedRaceIds = array_map(function ($row) {
-    return $row['race_id'];
-}, $selectedRaceSet);
+$races = $raceRepo->getAll();
+$selectedRaceIds = $championRaceRepo->getByChampionId($championId);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -31,6 +25,7 @@ $selectedRaceIds = array_map(function ($row) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Update Champion</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.css">
     <link rel="stylesheet" href="../assets/css/base.css">
     <link rel="stylesheet" href="../assets/css/navigation.css">
     <script src="../assets/js/navigation.js"></script>
@@ -44,9 +39,10 @@ $selectedRaceIds = array_map(function ($row) {
         </header>
 
         <section class="panel">
-            <form action="./EXC.php" method="post" enctype="multipart/form-data">
+            <form id="championUpdateForm" data-crop-form data-crop-type="champion" action="./EXC.php" method="post" enctype="multipart/form-data">
                 <input type="hidden" name="action" value="update">
                 <input type="hidden" name="champion_id" value="<?php echo htmlspecialchars($champion['champion_id']); ?>">
+                <input type="hidden" name="championImageData" data-crop-data>
 
                 <div class="form-row">
                     <label>Champion Name</label>
@@ -72,8 +68,9 @@ $selectedRaceIds = array_map(function ($row) {
                     <select name="champion_region" required>
                         <option value="">Select a region</option>
                         <?php
-                        $regionResult = $conn->query("SELECT * FROM region ORDER BY region_name ASC");
-                        while ($region = $regionResult->fetch_assoc()) {
+                        $regionRepo = new RegionRepository($conn);
+                        $regions = $regionRepo->getAll();
+                        foreach ($regions as $region) {
                             echo '<option value="' . htmlspecialchars($region['region_id']) . '"' . ($champion['champion_region'] == $region['region_id'] ? ' selected' : '') . '>' . htmlspecialchars($region['region_name']) . '</option>';
                         }
                         ?>
@@ -93,6 +90,13 @@ $selectedRaceIds = array_map(function ($row) {
                             <img src="../<?php echo htmlspecialchars($champion['champion_image']); ?>" alt="Champion image" style="max-width: 200px; margin-top: 10px;">
                         </div>
                     <?php endif; ?>
+                </div>
+
+                <div id="cropPreviewWrapper" data-crop-preview class="crop-preview-wrapper" style="display:none;">
+                    <div id="cropStage" class="crop-stage">
+                        <img id="cropImage" data-crop-image src="<?php echo !empty($champion['champion_image']) ? '../' . htmlspecialchars($champion['champion_image']) : ''; ?>" alt="Crop preview">
+                    </div>
+                    <button type="button" id="applyCropBtn" data-crop-apply class="secondary-btn apply-crop-btn">Use this crop</button>
                 </div>
 
                 <div class="form-row">
@@ -115,6 +119,8 @@ $selectedRaceIds = array_map(function ($row) {
         </section>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.js"></script>
+    <script src="../assets/js/crop.js"></script>
     <script>
         const limit = 2;
         const checkboxes = document.querySelectorAll('input[name="races[]"]');

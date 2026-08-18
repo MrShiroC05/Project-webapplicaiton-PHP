@@ -2,8 +2,8 @@
 include '../Connection/connect.php';
 include '../method/database.php';
 
-$raceRepo = new RaceRepository($conn);
-$result = $raceRepo->getAll();
+$championRepo = new ChampionRepository($conn);
+$result = $championRepo->getAllWithRace($_GET['race_id']);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -34,7 +34,6 @@ $result = $raceRepo->getAll();
                         <tr>
                             <th>ID</th>
                             <th>Name</th>
-                            <th>Description</th>
                             <th>Image</th>
                             <th>Actions</th>
                         </tr>
@@ -42,21 +41,19 @@ $result = $raceRepo->getAll();
                     <tbody>
                         <?php foreach ($result as $row): ?>
                             <tr>
-                                <td><?php echo htmlspecialchars($row['race_id']); ?></td>
-                                <td><?php echo htmlspecialchars($row['race_name']); ?></td>
-                                <td><?php echo htmlspecialchars($row['race_description']); ?></td>
+                                <td><?php echo htmlspecialchars($row['champion_id']); ?></td>
+                                <td><?php echo htmlspecialchars($row['champion_name']); ?></td>
                                 <td>
-                                    <?php if (!empty($row['race_image'])): ?>
-                                        <img src="../<?php echo htmlspecialchars($row['race_image']); ?>" alt="Race image" style="max-width: 90px; max-height: 90px; object-fit: cover;">
+                                    <?php if (!empty($row['champion_image'])): ?>
+                                        <img src="../<?php echo htmlspecialchars($row['champion_image']); ?>" alt="Champion image" style="max-width: 90px; max-height: 90px; object-fit: cover;">
                                     <?php else: ?>
                                         <span>No image</span>
                                     <?php endif; ?>
                                 </td>
                                 <td>
                                     <div class="action-group">
-                                        <a class="edit-btn" href="./update.php?race_id=<?php echo urlencode($row['race_id']); ?>">Edit</a>
-                                        <a class="delete-btn" href="./EXC.php?action=delete&race_id=<?php echo urlencode($row['race_id']); ?>" onclick="return confirm('Delete this race?');">Delete</a>
-                                        <a class="btn" href="./Champion.php?race_id=<?php echo urlencode($row['race_id']); ?>">View Champions</a>
+                                        <a class="edit-btn" href="./update.php?race_id=<?php echo urlencode($row['champion_id']); ?>">Edit</a>
+                                        <a class="delete-btn" href="./EXC.php?action=delete&race_id=<?php echo urlencode($row['champion_id']); ?>" onclick="return confirm('Delete this race?');">Delete</a>
                                     </div>
                                 </td>
                             </tr>
