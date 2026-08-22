@@ -1,4 +1,4 @@
-<?php include '../Connection/connect.php'; ?>
+<?php include '../Connection/connect.php'; include '../method/security.php'; ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -21,6 +21,7 @@
 
         <section class="panel">
             <form id="raceForm" data-crop-form data-crop-type="race" action="./EXC.php" method="post" enctype="multipart/form-data">
+                <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrfToken()); ?>">
                 <input type="hidden" name="action" value="add">
                 <input type="hidden" name="raceImageData" data-crop-data>
 

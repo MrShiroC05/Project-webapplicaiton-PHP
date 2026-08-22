@@ -1,6 +1,7 @@
 <?php
 include '../Connection/connect.php';
 include '../method/database.php';
+include '../method/security.php';
 
 function encodeRegionId($value) {
     return rtrim(strtr(base64_encode((string)$value), '+/', '-_'), '=');
@@ -41,42 +42,30 @@ $regions = $regionRepo->getAll();
 
         <?php
         if (!empty($regions)) {
-            echo "<section class='panel'>
-                    <table class='table'>
-                        <tr>
-                            <th>Region Name</th>
-                            <th>Region Description</th>
-                            <th>Image</th>
-                            <th>Actions</th>
-                        </tr>";
+            echo "<section class='card-grid'>";
 
             foreach ($regions as $row) {
                 $imagePath = !empty($row['region_image']) ? $row['region_image'] : '';
                 $encodedId = encodeRegionId($row['region_id']);
 
-                echo "<tr>
-                        <td>{$row['region_name']}</td>
-                        <td>{$row['region_description']}</td>
-                        <td>";
+                echo "<article class='card'>";
 
                 if (!empty($imagePath)) {
-                    echo "<img class='image' src='../{$imagePath}' alt='{$row['region_name']}'>";
+                    echo "<img class='card-image region-card-image' src='../{$imagePath}' alt='{$row['region_name']}'>";
                 } else {
-                    echo "<span class='no-image'>No image</span>";
+                    echo "<div class='card-image region-card-image empty-card-image'>No image</div>";
                 }
 
-                echo "</td>
-                        <td>
+                echo "<div class='card-body'>
+                            <h3>{$row['region_name']}</h3>
                             <div class='action-group'>
-                                <a class='edit-btn' href='update.php?id={$encodedId}'>Edit</a>
-                                <a class='delete-btn' href='EXC.php?action=delete&region_id={$encodedId}' data-delete-region>Delete</a>
+                                <a class='primary-btn' href='detail.php?region_id=" . urlencode(hashEntityId($row['region_id'])) . "'>More detail</a>
                             </div>
-                        </td>
-                    </tr>";
+                        </div>
+                    </article>";
             }
 
-            echo "</table>
-                </section>";
+            echo "</section>";
         } else {
             echo "<div class='empty-state'>No region data found.</div>";
         }

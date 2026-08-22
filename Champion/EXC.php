@@ -3,6 +3,7 @@ include '../Connection/connect.php';
 include '../method/database.php';
 include '../method/notification.php';
 include '../method/imageUpload.php';
+include '../method/security.php';
 
 function deleteImageFile($imagePath) {
     if (empty($imagePath)) {
@@ -35,6 +36,7 @@ $championRepo = new ChampionRepository($conn);
 $championRaceRepo = new ChampionRaceRepository($conn);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    requireCsrfToken();
     $action = $_POST['action'] ?? '';
 
     if ($action === 'add') {
@@ -44,11 +46,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         $championId = $championRepo->getNextId();
-        $championName = $_POST['champion_name'] ?? '';
-        $championTitle = $_POST['champion_title'] ?? '';
-        $championGender = $_POST['champion_gender'] ?? '';
-        $championRegion = $_POST['champion_region'] ?? '';
-        $championStory = $_POST['champion_story'] ?? '';
+        $championName = cleanText($_POST['champion_name'] ?? '', 100);
+        $championTitle = cleanText($_POST['champion_title'] ?? '', 150);
+        $championGender = cleanText($_POST['champion_gender'] ?? '', 1);
+        $championRegion = cleanText($_POST['champion_region'] ?? '', 10);
+        $championStory = cleanText($_POST['champion_story'] ?? '', 5000);
         $croppedImagePath = saveImageDataUrl($_POST['championImageData'] ?? null, 'champion');
         $imagePath = $croppedImagePath ?? saveUploadedImage($_FILES['champion_image'] ?? null, 'champion');
 
@@ -69,17 +71,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if ($action === 'update') {
-        $championId = $_POST['champion_id'] ?? '';
+        $championId = resolveEntityId($conn, 'champion', cleanText($_POST['champion_id'] ?? '', 32));
+        if (!validEntityId($championId)) {
+            redirectWithStatus('./listChampion.php', 'error', 'Invalid champion ID.');
+        }
         $selectedRaces = sanitizeRaceIds($_POST['races'] ?? []);
         if (count($selectedRaces) > 2) {
             redirectWithStatus('./listChampion.php', 'error', 'Each champion can only have up to 2 races.');
         }
 
-        $championName = $_POST['champion_name'] ?? '';
-        $championTitle = $_POST['champion_title'] ?? '';
-        $championGender = $_POST['champion_gender'] ?? '';
-        $championRegion = $_POST['champion_region'] ?? '';
-        $championStory = $_POST['champion_story'] ?? '';
+        $championName = cleanText($_POST['champion_name'] ?? '', 100);
+        $championTitle = cleanText($_POST['champion_title'] ?? '', 150);
+        $championGender = cleanText($_POST['champion_gender'] ?? '', 1);
+        $championRegion = cleanText($_POST['champion_region'] ?? '', 10);
+        $championStory = cleanText($_POST['champion_story'] ?? '', 5000);
         $currentImage = $championRepo->getById($championId)['champion_image'] ?? null;
         $croppedImageData = $_POST['championImageData'] ?? null;
         $newImage = !empty($croppedImageData) ? saveImageDataUrl($croppedImageData, 'champion') : saveUploadedImage($_FILES['champion_image'] ?? null, 'champion');
@@ -115,20 +120,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-if (($_SERVER['REQUEST_METHOD'] === 'GET') && ($_GET['action'] ?? '') === 'delete') {
-    $championId = $_GET['champion_id'] ?? '';
-    if ($championId === '') {
+if (($_SERVER['REQUEST_METHOD'] === 'POST') && ($_POST['action'] ?? '') === 'delete') {
+    requireCsrfToken();
+    $championId = resolveEntityId($conn, 'champion', cleanText($_POST['champion_id'] ?? '', 32));
+    if (!validEntityId($championId)) {
         redirectWithStatus('./listChampion.php', 'error', 'Invalid champion ID.');
     }
 
     $currentImage = $championRepo->getById($championId)['champion_image'] ?? null;
     deleteImageFile($currentImage);
 
-    $conn->query("DELETE FROM champion_race WHERE champion_id = '" . $conn->real_escape_string($championId) . "'");
-    if ($championRepo->delete($championId)) {
+    $conn->begin_transaction();
+
+    // Remove child rows first because relationship and champion_race reference this champion.
+    $relationshipStmt = $conn->prepare("DELETE FROM relationship WHERE champion_id = ? OR relateChampion_id = ?");
+    $relationshipStmt->bind_param('ss', $championId, $championId);
+    $raceStmt = $conn->prepare("DELETE FROM champion_race WHERE champion_id = ?");
+    $raceStmt->bind_param('s', $championId);
+    $childrenDeleted = $relationshipStmt->execute() && $raceStmt->execute();
+
+    if ($childrenDeleted && $championRepo->delete($championId)) {
+        $conn->commit();
         redirectWithStatus('./listChampion.php', 'success', 'Champion deleted successfully.');
     }
 
+    $conn->rollback();
     redirectWithStatus('./listChampion.php', 'error', 'Unable to delete champion.');
 }
 

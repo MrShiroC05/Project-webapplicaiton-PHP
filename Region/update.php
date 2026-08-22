@@ -2,6 +2,7 @@
 // File role: update existing region information.
 include '../Connection/connect.php';
 include '../method/database.php';
+include '../method/security.php';
 
 function decodeRegionId($value) {
     $padding = str_repeat('=', (4 - strlen($value) % 4) % 4);
@@ -34,7 +35,7 @@ function decodeRegionId($value) {
 
         <?php 
             $encodedId = $_GET['id'] ?? '';
-            $id = decodeRegionId($encodedId);
+            $id = resolveEntityId($conn, 'region', $encodedId);
 
             if ($id === null) {
                 die('Invalid region ID.');
@@ -50,8 +51,9 @@ function decodeRegionId($value) {
 
         <section class="panel">
             <form id="regionUpdateForm" class="form" data-crop-form data-crop-type="region" action="./EXC.php" method="post" enctype="multipart/form-data">
+                <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrfToken()); ?>">
                 <input type="hidden" name="action" value="update">
-                <input type="hidden" name="region_id" value="<?php echo $row['region_id']; ?>">
+                <input type="hidden" name="region_id" value="<?php echo htmlspecialchars(hashEntityId($row['region_id'])); ?>">
                 <input type="hidden" id="regionImageData" name="regionImageData" data-crop-data>
 
                 <div class="form-row">

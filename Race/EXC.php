@@ -3,6 +3,7 @@ include '../Connection/connect.php';
 include '../method/database.php';
 include '../method/notification.php';
 include '../method/imageUpload.php';
+include '../method/security.php';
 
 function deleteImageFile($imagePath) {
     if (empty($imagePath)) {
@@ -18,11 +19,12 @@ function deleteImageFile($imagePath) {
 $raceRepo = new RaceRepository($conn);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    requireCsrfToken();
     $action = $_POST['action'] ?? '';
 
     if ($action === 'add') {
-        $raceName = $_POST['race_name'] ?? '';
-        $raceDescription = $_POST['race_description'] ?? '';
+        $raceName = cleanText($_POST['race_name'] ?? '', 100);
+        $raceDescription = cleanText($_POST['race_description'] ?? '', 5000);
         $croppedImagePath = saveImageDataUrl($_POST['raceImageData'] ?? null, 'race');
         $imagePath = $croppedImagePath ?? saveUploadedImage($_FILES['race_image'] ?? null, 'race');
 
@@ -38,9 +40,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if ($action === 'update') {
-        $raceId = $_POST['race_id'] ?? '';
-        $raceName = $_POST['race_name'] ?? '';
-        $raceDescription = $_POST['race_description'] ?? '';
+        $raceId = resolveEntityId($conn, 'race', cleanText($_POST['race_id'] ?? '', 32));
+        $raceName = cleanText($_POST['race_name'] ?? '', 100);
+        $raceDescription = cleanText($_POST['race_description'] ?? '', 5000);
+        if (!validEntityId($raceId)) {
+            redirectWithStatus('./listRace.php', 'error', 'Invalid race ID.');
+        }
         $currentImage = $raceRepo->getById($raceId)['race_image'] ?? null;
         $croppedImageData = $_POST['raceImageData'] ?? null;
         $newImage = !empty($croppedImageData) ? saveImageDataUrl($croppedImageData, 'race') : saveUploadedImage($_FILES['race_image'] ?? null, 'race');
@@ -66,8 +71,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-if (($_SERVER['REQUEST_METHOD'] === 'GET') && ($_GET['action'] ?? '') === 'delete') {
-    $raceId = $_GET['race_id'] ?? '';
+if (($_SERVER['REQUEST_METHOD'] === 'POST') && ($_POST['action'] ?? '') === 'delete') {
+    requireCsrfToken();
+    $raceId = resolveEntityId($conn, 'race', cleanText($_POST['race_id'] ?? '', 32));
     if ($raceId === '') {
         redirectWithStatus('./listRace.php', 'error', 'Invalid race ID.');
     }
@@ -75,11 +81,18 @@ if (($_SERVER['REQUEST_METHOD'] === 'GET') && ($_GET['action'] ?? '') === 'delet
     $currentImage = $raceRepo->getById($raceId)['race_image'] ?? null;
     deleteImageFile($currentImage);
 
-    $conn->query("DELETE FROM champion_race WHERE race_id = '" . $conn->real_escape_string($raceId) . "'");
-    if ($raceRepo->delete($raceId)) {
+    $conn->begin_transaction();
+
+    // Remove the junction rows first because champions are children of this race through champion_race.
+    $childStmt = $conn->prepare("DELETE FROM champion_race WHERE race_id = ?");
+    $childStmt->bind_param('s', $raceId);
+
+    if ($childStmt->execute() && $raceRepo->delete($raceId)) {
+        $conn->commit();
         redirectWithStatus('./listRace.php', 'success', 'Race deleted successfully.');
     }
 
+    $conn->rollback();
     redirectWithStatus('./listRace.php', 'error', 'Unable to delete race.');
 }
 

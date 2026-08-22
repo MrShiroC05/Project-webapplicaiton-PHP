@@ -1,6 +1,7 @@
 <?php
 include '../Connection/connect.php';
 include '../method/database.php';
+include '../method/security.php';
 
 $raceRepo = new RaceRepository($conn);
 $regionRepo = new RegionRepository($conn);
@@ -29,6 +30,7 @@ $regions = $regionRepo->getAll();
 
         <section class="panel">
             <form id="championForm" data-crop-form data-crop-type="champion" action="./EXC.php" method="post" enctype="multipart/form-data">
+                <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrfToken()); ?>">
                 <input type="hidden" name="action" value="add">
                 <input type="hidden" name="championImageData" data-crop-data>
 
@@ -39,7 +41,7 @@ $regions = $regionRepo->getAll();
 
                 <div class="form-row">
                     <label>Champion Title</label>
-                    <input type="text" name="champion_title">
+                    <input type="text" name="champion_title" required>
                 </div>
 
                 <div class="form-row">
@@ -64,12 +66,12 @@ $regions = $regionRepo->getAll();
 
                 <div class="form-row">
                     <label>Champion Story</label>
-                    <textarea name="champion_story" rows="4"></textarea>
+                    <textarea name="champion_story" rows="4" required></textarea>
                 </div>
 
                 <div class="form-row">
                     <label>Champion Image</label>
-                    <input type="file" name="champion_image" accept="image/*">
+                    <input type="file" name="champion_image" accept="image/*" required>
                 </div>
 
                 <div id="cropPreviewWrapper" data-crop-preview class="crop-preview-wrapper" style="display:none;">

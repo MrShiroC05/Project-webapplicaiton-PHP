@@ -1,8 +1,9 @@
 <?php
 include '../Connection/connect.php';
 include '../method/database.php';
+include '../method/security.php';
 
-$raceId = $_GET['race_id'] ?? '';
+$raceId = resolveEntityId($conn, 'race', $_GET['race_id'] ?? '');
 if ($raceId === '') {
     die('Race ID is required.');
 }
@@ -34,8 +35,9 @@ if (!$race) {
 
         <section class="panel">
             <form id="raceUpdateForm" data-crop-form data-crop-type="race" action="./EXC.php" method="post" enctype="multipart/form-data">
+                <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrfToken()); ?>">
                 <input type="hidden" name="action" value="update">
-                <input type="hidden" name="race_id" value="<?php echo htmlspecialchars($race['race_id']); ?>">
+                <input type="hidden" name="race_id" value="<?php echo htmlspecialchars(hashEntityId($race['race_id'])); ?>">
                 <input type="hidden" name="raceImageData" data-crop-data>
 
                 <div class="form-row">

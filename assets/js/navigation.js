@@ -12,7 +12,7 @@ function initializeNavigation() {
             id: 'nav-home'
         },
         {
-            label: 'List Region',
+            label: 'Region',
             href: baseUrl + '/Region/listRegion.php',
             id: 'nav-list-region'
         },

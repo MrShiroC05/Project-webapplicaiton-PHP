@@ -1,8 +1,9 @@
 <?php
 include '../Connection/connect.php';
 include '../method/database.php';
+include '../method/security.php';
 
-$championId = $_GET['champion_id'] ?? '';
+$championId = resolveEntityId($conn, 'champion', $_GET['champion_id'] ?? '');
 if ($championId === '') {
     die('Champion ID is required.');
 }
@@ -40,8 +41,9 @@ $selectedRaceIds = $championRaceRepo->getByChampionId($championId);
 
         <section class="panel">
             <form id="championUpdateForm" data-crop-form data-crop-type="champion" action="./EXC.php" method="post" enctype="multipart/form-data">
+                <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(csrfToken()); ?>">
                 <input type="hidden" name="action" value="update">
-                <input type="hidden" name="champion_id" value="<?php echo htmlspecialchars($champion['champion_id']); ?>">
+                <input type="hidden" name="champion_id" value="<?php echo htmlspecialchars(hashEntityId($champion['champion_id'])); ?>">
                 <input type="hidden" name="championImageData" data-crop-data>
 
                 <div class="form-row">
@@ -51,7 +53,7 @@ $selectedRaceIds = $championRaceRepo->getByChampionId($championId);
 
                 <div class="form-row">
                     <label>Champion Title</label>
-                    <input type="text" name="champion_title" value="<?php echo htmlspecialchars($champion['champion_title']); ?>">
+                    <input type="text" name="champion_title" value="<?php echo htmlspecialchars($champion['champion_title']); ?>" required>
                 </div>
 
                 <div class="form-row">
@@ -71,7 +73,7 @@ $selectedRaceIds = $championRaceRepo->getByChampionId($championId);
                         $regionRepo = new RegionRepository($conn);
                         $regions = $regionRepo->getAll();
                         foreach ($regions as $region) {
-                            echo '<option value="' . htmlspecialchars($region['region_id']) . '"' . ($champion['champion_region'] == $region['region_id'] ? ' selected' : '') . '>' . htmlspecialchars($region['region_name']) . '</option>';
+                            echo '<option value="' . htmlspecialchars($region['region_id']) . '"' . ($champion['champion_regionId'] == $region['region_id'] ? ' selected' : '') . '>' . htmlspecialchars($region['region_name']) . '</option>';
                         }
                         ?>
                     </select>
@@ -79,12 +81,12 @@ $selectedRaceIds = $championRaceRepo->getByChampionId($championId);
 
                 <div class="form-row">
                     <label>Champion Story</label>
-                    <textarea name="champion_story" rows="4"><?php echo htmlspecialchars($champion['champion_story']); ?></textarea>
+                    <textarea name="champion_story" rows="4" required><?php echo htmlspecialchars($champion['champion_story']); ?></textarea>
                 </div>
 
                 <div class="form-row">
                     <label>Champion Image</label>
-                    <input type="file" name="champion_image" accept="image/*">
+                    <input type="file" name="champion_image" accept="image/*" >
                     <?php if (!empty($champion['champion_image'])): ?>
                         <div class="image-preview">
                             <img src="../<?php echo htmlspecialchars($champion['champion_image']); ?>" alt="Champion image" style="max-width: 200px; margin-top: 10px;">

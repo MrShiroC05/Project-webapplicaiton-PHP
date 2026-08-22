@@ -1,4 +1,6 @@
 <?php
+include '../Temporary_class/ChampionRelationShip.php';
+
 class Database {
     protected $conn;
 
@@ -152,6 +154,28 @@ class ChampionRepository extends Database {
         return $result ? $result->fetch_all(MYSQLI_ASSOC) : [];
     }
 
+    public function getAllWithDetails() {
+        $sql = "
+            SELECT c.*, r.region_name,
+                GROUP_CONCAT(DISTINCT race.race_name ORDER BY race.race_name SEPARATOR ', ') AS race_names
+            FROM champion c
+            LEFT JOIN region r ON r.region_id = c.champion_regionId
+            LEFT JOIN champion_race cr ON cr.champion_id = c.champion_id
+            LEFT JOIN race ON race.race_id = cr.race_id
+            GROUP BY c.champion_id
+            ORDER BY c.champion_id ASC
+        ";
+        $result = $this->conn->query($sql);
+        return $result ? $result->fetch_all(MYSQLI_ASSOC) : [];
+    }
+
+    public function getRacesByChampionId($championId) {
+        $stmt = $this->conn->prepare("SELECT race.* FROM race JOIN champion_race cr ON cr.race_id = race.race_id WHERE cr.champion_id = ? ORDER BY race.race_name ASC");
+        $stmt->bind_param('s', $championId);
+        $stmt->execute();
+        return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    }
+
     public function getById($championId) {
         $stmt = $this->conn->prepare("SELECT * FROM champion WHERE champion_id = ?");
         $stmt->bind_param('s', $championId);
@@ -170,15 +194,8 @@ class ChampionRepository extends Database {
         return 'C001';
     }
 
-    // not finished yet
     public function getAllWithRegionId($regionId){
-        $stmt = $this->conn->prepare("SELECT *
-            FROM champion c
-            LEFT JOIN champion_race cr ON cr.race_id = ". $regionId ."
-            LEFT JOIN race r ON r.race_id = cr.race_id
-            WHERE c.champion_regionId = ?
-            GROUP BY c.champion_id
-            ORDER BY c.champion_id ASC");
+        $stmt = $this->conn->prepare("SELECT c.* FROM champion c WHERE c.champion_regionId = ? ORDER BY c.champion_id ASC");
         $stmt->bind_param('s', $regionId);
         $stmt->execute();
         return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
@@ -234,6 +251,17 @@ class ChampionRepository extends Database {
         $stmt = $this->conn->prepare("DELETE FROM champion WHERE champion_id = ?");
         $stmt->bind_param('s', $championId);
         return $stmt->execute();
+    }
+
+    public function getNameById($championId){
+        $stmt = $this->conn->prepare("SELECT champion_name FROM champion WHERE champion_id = ?");
+        $stmt->bind_param('s', $championId);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        if ($result && $row = $result->fetch_assoc()) {
+            return $row['champion_name'];
+        }
+        return null;
     }
 }
 
@@ -299,5 +327,53 @@ class ChampionRaceRepository extends Database {
         }
 
         return true;
+    }
+}
+
+class ChampionRelationShip extends Database {
+    public function create($data) {
+        // Champion IDs are C001-style strings, so relationship columns must stay VARCHAR.
+        $championId = $data['champion_id'] ?? '';
+        $relatedChampionId = $data['related_champion_id'] ?? '';
+        $relationshipType = $data['relationship_type'] ?? '';
+
+        $stmt = $this->conn->prepare("INSERT INTO relationship (champion_id, relateChampion_id, relationship_type) VALUES (?, ?, ?)");
+        $stmt->bind_param('sss', $championId, $relatedChampionId, $relationshipType);
+        return $stmt->execute();
+    }
+
+    public function delete($championId, $relatedChampionId) {
+        $stmt = $this->conn->prepare("DELETE FROM relationship WHERE (champion_id = ? AND relateChampion_id = ?) OR (champion_id = ? AND relateChampion_id = ?)");
+        $stmt->bind_param('ssss', $championId, $relatedChampionId, $relatedChampionId, $championId);
+        return $stmt->execute();
+    }
+
+    public function update($championId, $relatedChampionId, $relationshipType) {
+        $stmt = $this->conn->prepare("UPDATE relationship SET relationship_type = ? WHERE (champion_id = ? AND relateChampion_id = ?) OR (champion_id = ? AND relateChampion_id = ?)");
+        $stmt->bind_param('sssss', $relationshipType, $championId, $relatedChampionId, $relatedChampionId, $championId);
+        return $stmt->execute();
+    }
+
+    public function getByChampionPair($championId, $relatedChampionId) {
+        $stmt = $this->conn->prepare("SELECT relationship_type FROM relationship WHERE (champion_id = ? AND relateChampion_id = ?) OR (champion_id = ? AND relateChampion_id = ?)");
+        $stmt->bind_param('ssss', $championId, $relatedChampionId, $relatedChampionId, $championId);
+        $stmt->execute();
+        return $stmt->get_result()->fetch_assoc();
+    }
+
+    public function getListRelationById($id){
+        $stmt = $this->conn->prepare("SELECT r.relationship_type, c.champion_id AS related_champion_id, c.champion_name AS related_champion_name, c.champion_image AS related_champion_image
+        FROM relationship AS r JOIN champion AS c
+        ON c.champion_id = CASE
+        WHEN r.champion_id = ?
+        THEN r.relateChampion_id ELSE r.champion_id END WHERE (r.champion_id = ? OR r.relateChampion_id = ?)");
+        $stmt->bind_param('sss', $id, $id, $id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $relations = [];
+        while ($row = $result->fetch_assoc()) {
+            $relations[] = $row;
+        }
+        return $relations;
     }
 }

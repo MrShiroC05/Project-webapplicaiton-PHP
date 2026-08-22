@@ -1,9 +1,10 @@
 <?php
 include '../Connection/connect.php';
 include '../method/database.php';
+include '../method/security.php';
 
 $championRepo = new ChampionRepository($conn);
-$result = $championRepo->getAllWithRaceNames();
+$result = $championRepo->getAllWithDetails();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -13,6 +14,8 @@ $result = $championRepo->getAllWithRaceNames();
     <title>Champion List</title>
     <link rel="stylesheet" href="../assets/css/base.css">
     <link rel="stylesheet" href="../assets/css/navigation.css">
+    <link rel="stylesheet" href="../assets/css/list.css">
+    <link rel="stylesheet" href="../assets/css/cards.css">
     <script src="../assets/js/navigation.js"></script>
     <script src="../assets/js/toast.js"></script>
 </head>
@@ -28,42 +31,24 @@ $result = $championRepo->getAllWithRaceNames();
         </header>
 
         <?php if (!empty($result)): ?>
-            <section class="panel">
-                <table class="region-table">
-                    <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Title</th>
-                            <th>Gender</th>
-                            <th>Races</th>
-                            <th>Image</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach ($result as $row): ?>
-                            <tr>
-                                <td><?php echo htmlspecialchars($row['champion_name']); ?></td>
-                                <td><?php echo htmlspecialchars($row['champion_title']); ?></td>
-                                <td><?php echo htmlspecialchars($row['champion_gender']); ?></td>
-                                <td><?php echo htmlspecialchars($row['race_names'] ?? 'No race'); ?></td>
-                                <td>
-                                    <?php if (!empty($row['champion_image'])): ?>
-                                        <img src="../<?php echo htmlspecialchars($row['champion_image']); ?>" alt="Champion image" style="max-width: 90px; max-height: 90px; object-fit: cover;">
-                                    <?php else: ?>
-                                        <span>No image</span>
-                                    <?php endif; ?>
-                                </td>
-                                <td>
-                                    <div class="action-group">
-                                        <a class="edit-btn" href="./update.php?champion_id=<?php echo urlencode($row['champion_id']); ?>">Edit</a>
-                                        <a class="delete-btn" href="./EXC.php?action=delete&champion_id=<?php echo urlencode($row['champion_id']); ?>" onclick="return confirm('Delete this champion?');">Delete</a>
-                                    </div>
-                                </td>
-                            </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
+            <section class="card-grid">
+                <?php foreach ($result as $row): ?>
+                    <article class="card">
+                        <?php if (!empty($row['champion_image'])): ?>
+                            <img class="card-image" src="../<?php echo htmlspecialchars($row['champion_image']); ?>" alt="<?php echo htmlspecialchars($row['champion_name']); ?>">
+                        <?php else: ?>
+                            <div class="card-image empty-card-image">No image</div>
+                        <?php endif; ?>
+                        <div class="card-body">
+                            <h3><?php echo htmlspecialchars($row['champion_name']); ?></h3>
+                            <p><?php echo htmlspecialchars($row['champion_title'] ?: 'No title'); ?></p>
+                            <div class="action-group">
+                                <a class="primary-btn" href="./detail.php?champion_id=<?php echo urlencode(hashEntityId($row['champion_id'])); ?>">More detail</a>
+                                
+                            </div>
+                        </div>
+                    </article>
+                <?php endforeach; ?>
             </section>
         <?php else: ?>
             <div class="empty-state">No champion data found.</div>

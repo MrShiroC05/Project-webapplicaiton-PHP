@@ -45,7 +45,7 @@ include './Connection/connect.php';
 
                     if ($result && $result->num_rows > 0) {
                         echo "<div class='card-grid'>";
-                        for ($i =0; $i < 6 && $row = $result->fetch_assoc(); $i++) {
+                        for ($i =0; $i < 8 && $row = $result->fetch_assoc(); $i++) {
                             $imagePath = !empty($row["champion_image"]) ? $row["champion_image"] : '';
                             $id = md5($row["champion_id"]);
                             echo "<article class='card'>";
@@ -77,7 +77,7 @@ include './Connection/connect.php';
                     $result = $conn->query($sql);
                     if ($result && $result->num_rows > 0) {
                         echo "<div class='card-grid'>";
-                        for ($i = 0; $i < 6 && $row = $result->fetch_assoc(); $i++) {
+                        for ($i = 0; $i < 8 && $row = $result->fetch_assoc(); $i++) {
                             $imagePath = !empty($row["region_image"]) ? $row["region_image"] : '';
                             $id = md5($row["region_id"]);
                             echo "<article class='card'>";
@@ -88,7 +88,6 @@ include './Connection/connect.php';
                             }
                             echo "<div class='card-body'>
                                     <h3>{$row['region_name']}</h3>
-                                    <p>{$row['region_description']}</p>
                                   </div>
                               </article>";
                         }
